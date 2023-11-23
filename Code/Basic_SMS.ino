@@ -160,7 +160,7 @@ int readSerial(char result[]) {
 int record_ultrasonic_values() {
   long duration;
   int distance;
-  unsigned long long summed_distance = 0;
+  int summed_distance = 0;
   int avg_distance;
   int count = 0;
 
