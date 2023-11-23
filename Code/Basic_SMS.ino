@@ -124,7 +124,7 @@ void loop() {
     Serial.println("Nearly Done");
 
   }
-
+//previous attempt stopped here, not sure why as it printed "Nearly done" into serial port
   sms.endSMS();
 
   Serial.println("\nCOMPLETE!\n");
