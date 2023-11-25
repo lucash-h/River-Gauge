@@ -1,192 +1,172 @@
 /*
-found at https://www.arduino.cc/en/Tutorial/MKRGSMExamplesSendSMS on nov 21 2023
+found  at  https://www.arduino.cc/en/Tutorial/MKRGSMExamplesSendSMS  on  nov  21  2023
 */
 
 /*
-
- SMS sender
-
- This sketch, for the MKR GSM 1400 board,sends an SMS message
-
- you enter in the serial monitor. Connect your Arduino with the
-
- GSM shield and SIM card, open the serial monitor, and wait for
-
- the "READY" message to appear in the monitor. Next, type a
-
- message to send and press "return". Make sure the serial
-
- monitor is set to send a newline when you press return.
-
- Circuit:
-
- * MKR GSM 1400 board
-
- * Antenna
-
- * SIM card that can send SMS
-
- created 25 Feb 2012
-
- by Tom Igoe
-
+  SMS  sender
+  This  sketch,  for  the  MKR  GSM  1400  board,sends  an  SMS  message
+  you  enter  in  the  serial  monitor.  Connect  your  Arduino  with  the
+  GSM  shield  and  SIM  card,  open  the  serial  monitor,  and  wait  for
+  the  "READY"  message  to  appear  in  the  monitor.  Next,  type  a
+  message  to  send  and  press  "return".  Make  sure  the  serial
+  monitor  is  set  to  send  a  newline  when  you  press  return.
+  Circuit:
+  *  MKR  GSM  1400  board
+  *  Antenna
+  *  SIM  card  that  can  send  SMS
+  created  25  Feb  2012
+  by  Tom  Igoe
 */
-
-// Include the GSM library
+//  Include  the  GSM  library
 #include <MKRGSM.h>
 #include "arduino_secrets.h"
 #include <string.h>
-#include <iostream>  
-using namespace std;  
+#include <GSM.h>
+#include <iostream>    
+using  namespace  std;    
 
-// Please enter your sensitive data in the Secret tab or arduino_secrets.h
-// PIN Number
+//  Please  enter  your  sensitive  data  in  the  Secret  tab  or  arduino_secrets.h
+GSM  gsmAccess;
+GSM_SMS  sms;
+//  Array  to  hold  the  number  a  SMS  is  retrieved  from
 
-const char PINNUMBER[] = secret_pin_number;
 
-const int trigPin = 13;
-const int echoPin = 14;
+//  PIN  Number
+const char  PINNUMBER[]  =  secret_pin_number;
+const int  trigPin  =  14;
+const int  echoPin  =  13;
+int counter = 0;
 
-// initialize the library instance
 
-GSM gsmAccess;
-GSM_SMS sms;
+int  record_ultrasonic_values()  {
+    long  duration;
+    int  distance;
+    int  summed_distance  =  0;
+    int  avg_distance;
+    int  count  =  0;
 
-void setup() {
+    while  (count  <  50)  {
+            digitalWrite(trigPin,  LOW);
+            delayMicroseconds(2);
+            digitalWrite(trigPin,  HIGH);
+            delayMicroseconds(10);
+            digitalWrite(trigPin,  LOW);
 
-  pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
-  pinMode(echoPin, INPUT); // Sets the echoPin as an Input
+            duration  =  pulseIn(echoPin,  HIGH);
+            distance  =  duration  *  0.034  /  2;
+            summed_distance  +=  distance;
 
-  // initialize serial communications and wait for port to open:
-
-  Serial.begin(9600);
-
-  while (!Serial) {
-    delay(100);
-    Serial.println("Waiting");
-    ; // wait for serial port to connect. Needed for native USB port only
-
-  }
-
-  Serial.println("SMS Messages Sender");
-  // connection state
-  bool connected = false;
-
-  while (!connected) {
-    if (gsmAccess.begin(PINNUMBER) == GSM_READY) {
-      connected = true;
-      Serial.println("MADEIT");
-
-    } else {
-      Serial.println("Not connected");
-      delay(10);
-
-    }
-  }
-  Serial.println("GSM initialized");
+            Serial.print(count);
+            Serial.print("  Distance:  ");
+            Serial.print(distance);
+            Serial.print("  Summed  distance:  ");
+            Serial.print(summed_distance);
+            Serial.print("\n");
+            count++;
+        }
+        avg_distance  =  summed_distance  /  count;
+        return  avg_distance;
 }
 
-void loop() {
 
-  Serial.print("Enter a mobile number: ");
-  char remoteNum[20];
-  readSerial(remoteNum);
-  Serial.println(remoteNum);
+void  setup()  {
 
-  Serial.print("Now, enter SMS content: ");
-  char txtMsg[200];
-  readSerial(txtMsg);
+    pinMode(trigPin,  OUTPUT);  //  Sets  the  trigPin  as  an  Output
+    pinMode(echoPin,  INPUT);  //  Sets  the  echoPin  as  an  Input
 
-  Serial.println("SENDING");
-  Serial.println();
-  Serial.println("Message:");
-  Serial.println(txtMsg);
+    //  initialize  serial  communications  and  wait  for  port  to  open:
+    Serial.begin(9600);
 
-  sms.beginSMS(remoteNum);
+    while  (!Serial)  {
+        delay(100);
+        Serial.println("Waiting");
+        ;  //  wait  for  serial  port  to  connect.  Needed  for  native  USB  port  only
+    }
 
-  if (strcmp(txtMsg, "GIVEMEVALUE") == 0) {
-    int average_distance;
-    // Ultrasonic sensor distance measurement loop
-    Serial.println("Measuring distance...");
+    Serial.println("SMS  Messages  Sender");
+    //  connection  state
+    bool  connected  =  false;
 
-    average_distance = record_ultrasonic_values();
+    while  (!connected)  {
+        if  (gsmAccess.begin(PINNUMBER)  ==  GSM_READY)  {
+            connected  =  true;
+            Serial.println("MADEIT");
+        }  else  {
+            Serial.println("Not  connected");
+            delay(10);
+        }
+    }
+    Serial.println("GSM  initialized");
+}
 
-    Serial.print("avg value: ");
-    Serial.println(average_distance);
+void  loop()  {
+    char  c;
+    char  remoteNumber[20];
+    char  textMSG[100];
 
-    sms.println("Distance measurement complete:");
-    sms.println(average_distance);
+    //if  in  service,  gets  the  number
+    if  (sms.available())  {
+        //  Get  remote  number
+        sms.remoteNumber(remoteNumber,  20);
+        Serial.println("Received Number: ");
+        Serial.println(remoteNumber);
 
-  } else {
-    // Send the regular message
-    sms.println(txtMsg);
+    //reads  the  text  message currently not working
+/*        while ((c=sms.read() != -1))  {
+            textMSG[counter]  =  c;
+            Serial.println(c);
+            counter++;
+        }
 
-    Serial.println("Nearly Done");
+        textMSG[counter]  =  '\0';
+        Serial.println("\n MESSAGE READ");
+*/ 
+//if its the remote number we re looking for
+        sms.beginSMS(remoteNumber);
 
-  }
-//previous attempt stopped here, not sure why as it printed "Nearly done" into serial port
-  sms.endSMS();
+        if  (strcmp(remoteNumber,  "+1**********")  ==  0)  { //compare remote num to num given
+            int  average_distance;
+            //  Ultrasonic  sensor  distance  measurement  loop
+            Serial.println("Measuring  distance...");
 
-  Serial.println("\nCOMPLETE!\n");
+            average_distance  =  record_ultrasonic_values();
+
+            Serial.print("avg  value:  ");
+            Serial.println(average_distance);
+
+            sms.print("Distance  measurement  complete:");
+            sms.print(average_distance);
+
+        }  else  {
+            //  Send  the  regular  message
+            sms.print("Couldn't  Calculate  distance");
+        }
+        sms.endSMS();
+    }
 }
 
 /*
-  Read input serial
- */
+  Read  input  serial
+  */
+int  readSerial(char  result[])  {
 
-int readSerial(char result[]) {
+    int  i  =  0;
 
-  int i = 0;
+    while  (1)  {
 
-  while (1) {
+        while  (Serial.available()  >  0)  {
+            char  inChar  =  Serial.read();
 
-    while (Serial.available() > 0) {
-      char inChar = Serial.read();
+            if  (inChar  ==  '\n')  {
+                result[i]  =  '\0';
+                Serial.flush();
+                return  0;
+            }
 
-      if (inChar == '\n') {
-        result[i] = '\0';
-        Serial.flush();
-        return 0;
-      }
-
-      if (inChar != '\r') {
-        result[i] = inChar;
-        i++;
-      }
+            if  (inChar  !=  '\r')  {
+                result[i]  =  inChar;
+                i++;
+            }
+        }
     }
-  }
-}
-
-int record_ultrasonic_values() {
-  long duration;
-  int distance;
-  int summed_distance = 0;
-  int avg_distance;
-  int count = 0;
-
-  while (count < 50) {
-      digitalWrite(trigPin, LOW);
-      delayMicroseconds(2);
-      digitalWrite(trigPin, HIGH);
-      delayMicroseconds(10);
-      digitalWrite(trigPin, LOW);
-
-      duration = pulseIn(echoPin, HIGH);
-      distance = duration * 0.034 / 2;
-      summed_distance += distance;
-
-      Serial.print(count);
-      Serial.print(" Distance: ");
-      Serial.print(distance);
-      Serial.print(" Summed distance: ");
-      Serial.print(summed_distance);
-      Serial.print("\n");
-
-      count++;
-    }
-
-    avg_distance = summed_distance / count;
-    return avg_distance;
-
-
 }
