@@ -37,7 +37,7 @@ const int  trigPin  =  14;
 const int  echoPin  =  13;
 int counter = 0;
 
-
+/*This function takes 50 iterations of ultrasonic sensor readings and returns the average of those values*/
 int  record_ultrasonic_values()  {
     long  duration;
     int  distance;
@@ -111,20 +111,10 @@ void  loop()  {
         Serial.println("Received Number: ");
         Serial.println(remoteNumber);
 
-    //reads  the  text  message currently not working
-/*        while ((c=sms.read() != -1))  {
-            textMSG[counter]  =  c;
-            Serial.println(c);
-            counter++;
-        }
 
-        textMSG[counter]  =  '\0';
-        Serial.println("\n MESSAGE READ");
-*/ 
-//if its the remote number we re looking for
         sms.beginSMS(remoteNumber);
 
-        if  (strcmp(remoteNumber,  "+1**********")  ==  0)  { //compare remote num to num given
+        if  (strcmp(remoteNumber,  "+1**********")  ==  0)  { //compare remote num to num given (replace ********** with actual number)
             int  average_distance;
             //  Ultrasonic  sensor  distance  measurement  loop
             Serial.println("Measuring  distance...");
