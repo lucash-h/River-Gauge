@@ -23,7 +23,7 @@ found  at  https://www.arduino.cc/en/Tutorial/MKRGSMExamplesSendSMS  on  nov  21
 #include <string.h>
 #include <GSM.h>
 #include <iostream>    
-using  namespace  std;    
+#include "functions.ino"
 
 //  Please  enter  your  sensitive  data  in  the  Secret  tab  or  arduino_secrets.h
 GSM  gsmAccess;
@@ -36,37 +36,6 @@ const char  PINNUMBER[]  =  secret_pin_number;
 const int  trigPin  =  14;
 const int  echoPin  =  13;
 int counter = 0;
-
-/*This function takes 50 iterations of ultrasonic sensor readings and returns the average of those values*/
-int  record_ultrasonic_values()  {
-    long  duration;
-    int  distance;
-    int  summed_distance  =  0;
-    int  avg_distance;
-    int  count  =  0;
-
-    while  (count  <  50)  {
-            digitalWrite(trigPin,  LOW);
-            delayMicroseconds(2);
-            digitalWrite(trigPin,  HIGH);
-            delayMicroseconds(10);
-            digitalWrite(trigPin,  LOW);
-
-            duration  =  pulseIn(echoPin,  HIGH);
-            distance  =  duration  *  0.034  /  2;
-            summed_distance  +=  distance;
-
-            Serial.print(count);
-            Serial.print("  Distance:  ");
-            Serial.print(distance);
-            Serial.print("  Summed  distance:  ");
-            Serial.print(summed_distance);
-            Serial.print("\n");
-            count++;
-        }
-        avg_distance  =  summed_distance  /  count;
-        return  avg_distance;
-}
 
 
 void  setup()  {
@@ -132,31 +101,5 @@ void  loop()  {
             sms.print("Couldn't  Calculate  distance");
         }
         sms.endSMS();
-    }
-}
-
-/*
-  Read  input  serial
-  */
-int  readSerial(char  result[])  {
-
-    int  i  =  0;
-
-    while  (1)  {
-
-        while  (Serial.available()  >  0)  {
-            char  inChar  =  Serial.read();
-
-            if  (inChar  ==  '\n')  {
-                result[i]  =  '\0';
-                Serial.flush();
-                return  0;
-            }
-
-            if  (inChar  !=  '\r')  {
-                result[i]  =  inChar;
-                i++;
-            }
-        }
     }
 }

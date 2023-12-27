@@ -19,14 +19,23 @@ found  at  https://www.arduino.cc/en/Tutorial/MKRGSMExamplesSendSMS  on  nov  21
   by  Tom  Igoe
 */
 
-//  Include  the  GSM  library
+/*
+TODO:
+    give option to get x amount of counts maybe
+    make sure that message is being deleted to conserve memory space
+    modularize the code and get functions into functions.ino
+    think of ways it could break and make try catch or exceptions for them
+    review setup and loop and make sure they are doing what they should be doing and modify them per above satement
+    
+*/
+
 #include <MKRGSM.h>
 #include "arduino_secrets.h"
 #include <string.h>
 #include <string>
 #include <GSM.h>
 #include <iostream>
-using  namespace  std;    
+#include "functions.ino"
 
 //  Please  enter  your  sensitive  data  in  the  Secret  tab  or  arduino_secrets.h
 GSM  gsmAccess;
@@ -39,37 +48,6 @@ const char  PINNUMBER[]  =  secret_pin_number;
 const int  trigPin  =  14;
 const int  echoPin  =  13;
 int counter = 0;
-
-/*This function takes 50 iterations of ultrasonic sensor readings and returns the average of those values*/
-int  record_ultrasonic_values()  {
-    long  duration;
-    int  distance;
-    int  summed_distance  =  0;
-    int  avg_distance;
-    int  count  =  0;
-
-    while  (count  <  50)  {
-            digitalWrite(trigPin,  LOW);
-            delayMicroseconds(2);
-            digitalWrite(trigPin,  HIGH);
-            delayMicroseconds(10);
-            digitalWrite(trigPin,  LOW);
-
-            duration  =  pulseIn(echoPin,  HIGH);
-            distance  =  duration  *  0.034  /  2;
-            summed_distance  +=  distance;
-
-            Serial.print(count);
-            Serial.print("  Distance:  ");
-            Serial.print(distance);
-            Serial.print("  Summed  distance:  ");
-            Serial.print(summed_distance);
-            Serial.print("\n");
-            count++;
-        }
-        avg_distance  =  summed_distance  /  count;
-        return  avg_distance;
-}
 
 
 void  setup()  {
@@ -134,7 +112,7 @@ void  loop()  {
             //  Ultrasonic  sensor  distance  measurement  loop
             Serial.println("Measuring  distance...");
 
-            average_distance  =  record_ultrasonic_values();
+            average_distance  =  functions.record_ultrasonic_values();
 
             Serial.print("avg  value:  ");
             Serial.println(average_distance);
@@ -147,31 +125,5 @@ void  loop()  {
             sms.print("Couldn't  Calculate  distance");
         }
         sms.endSMS();
-    }
-}
-
-/*
-  Read  input  serial
-  */
-int  readSerial(char  result[])  {
-
-    int  i  =  0;
-
-    while  (1)  {
-
-        while  (Serial.available()  >  0)  {
-            char  inChar  =  Serial.read();
-
-            if  (inChar  ==  '\n')  {
-                result[i]  =  '\0';
-                Serial.flush();
-                return  0;
-            }
-
-            if  (inChar  !=  '\r')  {
-                result[i]  =  inChar;
-                i++;
-            }
-        }
     }
 }
