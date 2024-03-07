@@ -1,2 +1,2 @@
-#define secret_pin_number "1234" //for public mobile
+#define secret_pin_number "****" //for public mobile
 
